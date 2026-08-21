@@ -16,23 +16,29 @@ var (
 )
 
 type Config struct {
-	App       AppConfig
-	HttpPort  string
-	HttpHost  string
-	DB        DBConfig
-	LogLevel  string
-	LogFormat string
-	JWT       JWTConfig
+	App  AppConfig
+	Http HTTPConfig
+	DB   DBConfig
+	Log  LogConfig
+	JWT  JWTConfig
 }
 type AppConfig struct {
 	AppEnv  string
 	AppName string
+}
+type HTTPConfig struct {
+	HttpPort string
+	HttpHost string
 }
 type DBConfig struct {
 	DBAddr       string
 	MaxOpenConns int
 	MaxIdleConns int
 	MaxIdleTime  string
+}
+type LogConfig struct {
+	LogLevel  string
+	LogFormat string
 }
 type JWTConfig struct {
 	JWTSecret string
@@ -78,32 +84,45 @@ func Load() (*Config, error) {
 				logFormat = "text"
 			}
 		}
+
 		if len(jwtSecret) < 32 {
 			loadErr = fmt.Errorf("JWT_SECRET too short")
 			return
 		}
+
+		appConfig := &AppConfig{
+			AppEnv:  appEnv,
+			AppName: appName,
+		}
+
+		httpConfig := &HTTPConfig{
+			HttpPort: httpPort,
+			HttpHost: httpHost,
+		}
+
 		dbConfig := &DBConfig{
 			DBAddr:       dbAddr,
 			MaxOpenConns: maxOpenConns,
 			MaxIdleConns: maxIdleConns,
 			MaxIdleTime:  maxIdleTime,
 		}
+
+		logConfig := &LogConfig{
+			LogLevel:  logLevel,
+			LogFormat: logFormat,
+		}
+
 		jwtConfig := &JWTConfig{
 			JWTSecret: jwtSecret,
 			JWTExp:    jwtExp,
 		}
-		appConfig := &AppConfig{
-			AppEnv:  appEnv,
-			AppName: appName,
-		}
+
 		cfg = &Config{
-			App:       *appConfig,
-			HttpPort:  httpPort,
-			HttpHost:  httpHost,
-			DB:        *dbConfig,
-			LogLevel:  logLevel,
-			LogFormat: logFormat,
-			JWT:       *jwtConfig,
+			App:  *appConfig,
+			Http: *httpConfig,
+			DB:   *dbConfig,
+			Log:  *logConfig,
+			JWT:  *jwtConfig,
 		}
 	})
 
