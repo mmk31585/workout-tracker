@@ -127,6 +127,12 @@ func Load() (*Config, error) {
 func GetConfig() *Config {
 	return cfg
 }
+
+func ResetForTest() {
+	cfg = nil
+	loadErr = nil
+	once = sync.Once{}
+}
 func GetString(key string, fallback string) string {
 	val, ok := os.LookupEnv(key)
 	if !ok {
