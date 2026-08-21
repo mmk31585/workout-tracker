@@ -1,8 +1,9 @@
-.PHONY: build run test test-unit lint fmt vet swagger tidy clean coverage check
+include .env
+.PHONY: build run test test-unit lint fmt vet swagger tidy clean coverage check migration migrate-up seed
 
 # Build
 build:
-	go build -o bin/url-shortener ./cmd/api/...
+	go build -o bin/workout-tracker ./cmd/api/...
 
 # Run
 run:
@@ -14,7 +15,7 @@ test-unit:
 
 # Format
 fmt:
-	gofmt -s -w .
+	gofmt -s -w -s -w .
 
 # Vet
 vet:
@@ -41,6 +42,18 @@ coverage:
 # Generate swagger + run tests
 check: swagger test-unit lint
 	@echo "All checks passed"
+
+# Create a new Goose migration
+migration:
+	goose -dir=migrations create $(filter-out $@,$(MAKECMDGOALS)) sql
+
+# Database migrations
+migrate-up:
+	goose -dir=migrations postgres "$$DATABASE_URL" up
+
+# Seed database
+seed:
+	go run ./cmd/seed/main.go
 
 # Clean
 clean:
