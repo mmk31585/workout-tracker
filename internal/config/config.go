@@ -46,11 +46,7 @@ type JWTConfig struct {
 }
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		loadErr = err
-		return
-	}
+	_ = godotenv.Load()
 }
 
 func Load() (*Config, error) {
