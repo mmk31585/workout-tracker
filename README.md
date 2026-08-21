@@ -56,7 +56,7 @@ mapped to explicit phases:
 
 | Component | Choice | Why |
 |---|---|---|
-| Language | Go 1.26.6 | Standard library ergonomics, explicit dependency injection, no framework magic, first-class concurrency — the language where "idiomatic" has an accepted shape. |
+| Language | Go 1.27 | Standard library ergonomics, explicit dependency injection, no framework magic, first-class concurrency — the language where "idiomatic" has an accepted shape. |
 | Router | `chi` | Tiny, idiomatic, production-standard. Route groups, method+path patterns, and a clean middleware chain without the gravity of a full framework. |
 | HTTP | `net/http` | chi is a thin layer on stdlib; we keep stdlib handlers, `ResponseWriter`/`Request`, and middleware wrapping. |
 | Database | PostgreSQL 15 (`postgres:15-alpine`) | Real relational integrity: FK constraints, `UNIQUE`/`CHECK`, `timestamptz`, transactions. The constraint story *is* the lesson — an ORM would hide it. |
@@ -195,7 +195,7 @@ All responses use a consistent error envelope:
 
 ## 7. Setup
 
-Prerequisites: Go 1.26.6+, Docker (for the dev database and integration tests). No local
+Prerequisites: Go 1.27+, Docker (for the dev database and integration tests). No local
 Postgres install is required — everything runs in containers.
 
 ```bash
@@ -219,7 +219,7 @@ Environment variables (in `.env`):
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Postgres DSN (`postgres://...`). |
+| `DB_ADDR` | Postgres DSN (`postgres://...`). |
 | `JWT_SECRET` | HMAC secret for token signing — from env/secret manager, **never hardcoded or logged**. |
 | `JWT_EXPIRATION` | JWT expiration time (e.g., 1h). |
 | `HTTP_PORT` | Listen port, e.g. `8080`. |

@@ -52,9 +52,6 @@ func TestNew_ProductionReturnsJSONHandler(t *testing.T) {
 	if m["key"] != "value" {
 		t.Errorf("expected key 'value', got %v", m["key"])
 	}
-	if _, ok := m["source"]; !ok {
-		t.Error("expected source field in production logger output")
-	}
 }
 
 func TestNew_DevelopmentReturnsTextHandler(t *testing.T) {
@@ -133,7 +130,7 @@ func TestNew_CanCreateChildLogger(t *testing.T) {
 	child.Info("request processed")
 }
 
-func TestNew_HasAddSourceEnabledProduction(t *testing.T) {
+func TestNew_ProductionHasNoAddSource(t *testing.T) {
 	output := captureStdout(t, func() {
 		log := New("production", "info", "")
 		log.Info("source test", "key", "value")
@@ -143,8 +140,8 @@ func TestNew_HasAddSourceEnabledProduction(t *testing.T) {
 	if err := json.Unmarshal([]byte(output), &m); err != nil {
 		t.Fatalf("expected valid JSON output, got error: %v (body: %q)", err, output)
 	}
-	if _, ok := m["source"]; !ok {
-		t.Error("expected source field in production logger output")
+	if _, ok := m["source"]; ok {
+		t.Error("expected no source field in production logger output")
 	}
 }
 

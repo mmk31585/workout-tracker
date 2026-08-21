@@ -46,11 +46,7 @@ type JWTConfig struct {
 }
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		loadErr = err
-		return
-	}
+	_ = godotenv.Load()
 }
 
 func Load() (*Config, error) {
@@ -130,6 +126,12 @@ func Load() (*Config, error) {
 }
 func GetConfig() *Config {
 	return cfg
+}
+
+func ResetForTest() {
+	cfg = nil
+	loadErr = nil
+	once = sync.Once{}
 }
 func GetString(key string, fallback string) string {
 	val, ok := os.LookupEnv(key)

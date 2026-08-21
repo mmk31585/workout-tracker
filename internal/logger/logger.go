@@ -9,8 +9,9 @@ import (
 func New(env, level, format string) *slog.Logger {
 	var handler slog.Handler
 
-	opts := &slog.HandlerOptions{
-		AddSource: true,
+	opts := &slog.HandlerOptions{}
+	if env != "production" {
+		opts.AddSource = true
 	}
 
 	switch strings.ToLower(level) {
