@@ -8,7 +8,7 @@ type ScheduledWorkout struct {
 	WorkoutPlanID string
 	ScheduledAt   time.Time
 	Status        string
-	Notes         string
+	Notes         *string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }

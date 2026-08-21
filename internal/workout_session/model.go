@@ -6,8 +6,8 @@ type WorkoutSession struct {
 	ID                 string
 	UserID             string
 	ScheduledWorkoutID string
-	PerformedAt        time.Time
-	OverallNotes       string
+	PerformedAt        *time.Time
+	OverallNotes       *string
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }
@@ -20,6 +20,6 @@ type WorkoutSessionItem struct {
 	Reps             int
 	Weight           float64
 	Unit             string
-	Notes            string
+	Notes            *string
 	CreatedAt        time.Time
 }
