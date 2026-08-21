@@ -1,5 +1,5 @@
 include .env
-.PHONY: build run test test-unit lint fmt vet swagger tidy clean coverage check migration migrate-up seed
+.PHONY: build run test test-unit lint fmt vet swagger tidy clean coverage check migration migrate-up migrate-down migrate-status seed
 
 # Build
 build:
@@ -49,8 +49,13 @@ migration:
 
 # Database migrations
 migrate-up:
-	goose -dir=migrations postgres "$$DATABASE_URL" up
+	goose -dir=migrations postgres "$(DB_ADDR)" up
 
+migrate-down:
+	goose -dir=migrations postgres "$(DB_ADDR)" down
+
+migrate-status:
+	goose -dir=migrations postgres "$(DB_ADDR)" status
 # Seed database
 seed:
 	go run ./cmd/seed/main.go
