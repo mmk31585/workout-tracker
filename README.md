@@ -219,7 +219,7 @@ Environment variables (in `.env`):
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Postgres DSN (`postgres://...`). |
+| `DB_ADDR` | Postgres DSN (`postgres://...`). |
 | `JWT_SECRET` | HMAC secret for token signing — from env/secret manager, **never hardcoded or logged**. |
 | `JWT_EXPIRATION` | JWT expiration time (e.g., 1h). |
 | `HTTP_PORT` | Listen port, e.g. `8080`. |
