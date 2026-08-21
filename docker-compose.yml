@@ -1,0 +1,46 @@
+services:
+  api:
+    build: .
+    container_name: workout-tracker-api
+    env_file:
+      - .env
+    environment:
+      DB_ADDR: postgres://${POSTGRES_USER:-workout}:${POSTGRES_PASSWORD:-workout}@db:5432/${POSTGRES_DB:-workout}?sslmode=disable
+      SERVER_ADDRESS: ":8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+
+  db:
+    image: postgres:17
+    container_name: workout-tracker-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-workout}
+      POSTGRES_USER: ${POSTGRES_USER:-workout}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-workout}
+      PGPORT: ${POSTGRES_PORT:-5432}
+    networks:
+      - backend
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-workout} -d $${POSTGRES_DB:-workout}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  db-data:
+
+networks:
+  backend:
+    driver: bridge
