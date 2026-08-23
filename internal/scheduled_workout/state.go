@@ -1,6 +1,9 @@
 package scheduledworkout
 
-import "errors"
+import (
+	"errors"
+	"slices"
+)
 
 type ScheduleStatus string
 
@@ -21,10 +24,5 @@ var legalTransitions = map[ScheduleStatus][]ScheduleStatus{
 }
 
 func (s ScheduleStatus) CanTransitionTo(next ScheduleStatus) bool {
-	for _, target := range legalTransitions[s] {
-		if target == next {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(legalTransitions[s], next)
 }
