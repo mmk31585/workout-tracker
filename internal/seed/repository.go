@@ -2,16 +2,12 @@ package seed
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"time"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/mmk31585/workout-tracker/internal/db"
 	"github.com/mmk31585/workout-tracker/internal/exercise"
 	"golang.org/x/crypto/bcrypt"
-)
-
-var (
-	queryTimeout = time.Second * 5
 )
 
 type SeedRepository interface {
@@ -20,10 +16,10 @@ type SeedRepository interface {
 }
 
 type PostgresSeedRepository struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewPostgresSeedRepository(db *sql.DB) *PostgresSeedRepository {
+func NewPostgresSeedRepository(db *sqlx.DB) *PostgresSeedRepository {
 	return &PostgresSeedRepository{db: db}
 }
 
@@ -33,7 +29,7 @@ func (r *PostgresSeedRepository) SeedExercises(ctx context.Context, ex exercise.
 		VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())
 		ON CONFLICT DO NOTHING
 	`
-	ctx, cancel := context.WithTimeout(ctx, queryTimeout)
+	ctx, cancel := db.QueryTimeoutContext(ctx)
 	defer cancel()
 
 	_, err := r.db.ExecContext(ctx, query, ex.Name, ex.Description, ex.Category, ex.MuscleGroup)
@@ -51,7 +47,7 @@ func (r *PostgresSeedRepository) SeedUsers(ctx context.Context) error {
 	INSERT INTO users (id, email, display_name, password_hash, created_at, updated_at)
 	VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW())
 	ON CONFLICT (email) DO NOTHING`
-	ctx, cancel := context.WithTimeout(ctx, queryTimeout)
+	ctx, cancel := db.QueryTimeoutContext(ctx)
 
 	defer cancel()
 	_, err = r.db.ExecContext(ctx, query, "admin@example.com", "Admin User", string(hash))
