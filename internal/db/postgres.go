@@ -2,23 +2,23 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 )
 
 func New(addr string,
 	maxOpenConns int,
 	maxIdleConns int,
-	maxIdleTime string) (*sql.DB, error) {
+	maxIdleTime string) (*sqlx.DB, error) {
 
 	duration, err := time.ParseDuration(maxIdleTime)
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := sql.Open("pgx", addr)
+	db, err := sqlx.Connect("pgx", addr)
 	if err != nil {
 		return nil, err
 	}
