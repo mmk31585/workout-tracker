@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jmoiron/sqlx"
 	apperrors "github.com/mmk31585/workout-tracker/internal/app_errors"
 	"github.com/mmk31585/workout-tracker/internal/config"
@@ -36,10 +35,6 @@ func setupTestConfig(t *testing.T) {
 		DB: config.DBConfig{QueryTimeout: 5},
 	})
 	t.Cleanup(config.ResetForTest)
-}
-
-func uniqueViolation() error {
-	return &pgconn.PgError{Code: "23505", Message: "duplicate key value violates unique constraint"}
 }
 
 func strPtr(s string) *string { return &s }

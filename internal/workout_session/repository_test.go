@@ -51,8 +51,6 @@ func setupTestConfig(t *testing.T) {
 	t.Cleanup(config.ResetForTest)
 }
 
-//go:fix inline
-func ptr[T any](v T) *T { return new(v) }
 
 func TestPostgresWorkoutSessionRepository_Create(t *testing.T) {
 	fixedTime := time.Date(2025, 1, 2, 3, 4, 5, 0, time.UTC)
