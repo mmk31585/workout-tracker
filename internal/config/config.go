@@ -35,6 +35,7 @@ type DBConfig struct {
 	MaxOpenConns int
 	MaxIdleConns int
 	MaxIdleTime  string
+	QueryTimeout int 
 }
 type LogConfig struct {
 	LogLevel  string
@@ -61,6 +62,7 @@ func Load() (*Config, error) {
 		maxOpenConns := GetInt("DB_MAX_OPEN_CONNS", 30)
 		maxIdleConns := GetInt("DB_MAX_IDLE_CONNS", 30)
 		maxIdleTime := GetString("DB_MAX_LIFE_TIME", "5m")
+		queryTimeout := GetInt("DB_QUERY_TIMEOUT", 5) // Default 5 seconds
 
 		logLevel := GetString("LOG_LEVEL", "info")
 		logFormat := GetString("LOG_FORMAT", "")
@@ -101,6 +103,7 @@ func Load() (*Config, error) {
 			MaxOpenConns: maxOpenConns,
 			MaxIdleConns: maxIdleConns,
 			MaxIdleTime:  maxIdleTime,
+			QueryTimeout: queryTimeout,
 		}
 
 		logConfig := &LogConfig{
@@ -132,6 +135,11 @@ func ResetForTest() {
 	cfg = nil
 	loadErr = nil
 	once = sync.Once{}
+}
+
+func SetForTest(c *Config) {
+	cfg = c
+	loadErr = nil
 }
 func GetString(key string, fallback string) string {
 	val, ok := os.LookupEnv(key)
