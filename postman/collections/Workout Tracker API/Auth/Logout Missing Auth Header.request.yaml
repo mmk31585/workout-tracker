@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/auth/logout"
+method: POST
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      // Logout missing Authorization header test
+      pm.test("Logout missing Authorization header returns 401 Unauthorized", function () {
+          pm.response.to.have.status(401);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.withJson;
+      });
+
+      pm.test("Response contains error envelope", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property('data', null);
+          pm.expect(jsonData).to.have.property('error');
+      });
+    language: text/javascript
+order: 3010

@@ -1,0 +1,31 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: text
+  content: |-
+    {
+        "invalid_field": "test"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      // Login with invalid request body test
+      pm.test("Login with invalid request body returns 400 Bad Request", function () {
+          pm.response.to.have.status(400);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.withJson;
+      });
+
+      pm.test("Response contains error envelope", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property('data', null);
+          pm.expect(jsonData).to.have.property('error');
+      });
+    language: text/javascript
+order: 2030

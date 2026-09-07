@@ -1,0 +1,16 @@
+name: Workout Tracker Environment
+values:
+  - key: base_url
+    value: 'http://localhost:8080'
+  - key: access_token
+    value: ''
+  - key: test_email
+    value: test@example.com
+  - key: test_password
+    value: TestPassword123
+  - key: test_display_name
+    value: Test User
+  - key: basic_auth_username
+    value: ''
+  - key: basic_auth_password
+    value: ''

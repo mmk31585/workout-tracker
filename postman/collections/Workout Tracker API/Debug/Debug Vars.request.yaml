@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{base_url}}/debug/vars"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: basic
+  basic:
+    - key: username
+      value: "{{basic_auth_username}}"
+    - key: password
+      value: "{{basic_auth_password}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      // Debug vars endpoint test
+      pm.test("Status code is 200 OK", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.withJson;
+      });
+
+      pm.test("Response contains version metric", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property('version');
+      });
+    language: text/javascript
+order: 100

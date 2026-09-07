@@ -1,0 +1,344 @@
+openapi: "3.0.3"
+info:
+  title: Workout Tracker API
+  version: "1.0.0"
+  description: |
+    API for the Workout Tracker application.
+    
+    ## Debug Endpoints
+    The following debug endpoints are available:
+    - `GET /debug/vars` - Application metrics (expvar) - requires basic auth
+    - `GET /debug/statsviz/` - Statsviz visualization interface - requires basic auth
+    - `GET /debug/statsviz/*` - Statsviz visualization interface with paths - requires basic auth
+    - `GET /debug/statsviz/ws` - Statsviz WebSocket connection - websocket connections bypass basic auth
+    
+    ## Authentication
+    Most endpoints require a Bearer token (JWT) in the Authorization header.
+    Obtain a token via the `/api/v1/auth/login` or `/api/v1/auth/signup` endpoints.
+    
+    ```
+    Authorization: Bearer <access_token>
+    ```
+    
+    ## Error Responses
+    All error responses follow a consistent format:
+    ```json
+    {
+      "error": "error message"
+    }
+    ```
+    
+    Common HTTP status codes:
+    - 200: Success
+    - 201: Created
+    - 204: No Content
+    - 400: Bad Request (validation error)
+    - 401: Unauthorized (invalid/missing token or invalid basic auth)
+    - 409: Conflict (e.g., duplicate email)
+    - 500: Internal Server Error
+servers:
+  - url: "http://localhost:8080"
+    description: Development server
+paths:
+  /debug/vars:
+    get:
+      summary: Application metrics
+      description: |
+        Returns application metrics via expvar.
+        Includes version and other runtime statistics.
+        Requires Basic Authentication.
+      operationId: debugVars
+      tags:
+        - Debug
+      security:
+        - BasicAuth: []
+      responses:
+        '200':
+          description: Metrics data
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          description: Invalid or missing Basic Authentication credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /debug/statsviz/:
+    get:
+      summary: Statsviz interface
+      description: |
+        Returns the Statsviz visualization interface for application metrics.
+        Requires Basic Authentication.
+      operationId: debugStatsvizIndex
+      tags:
+        - Debug
+      security:
+        - BasicAuth: []
+      responses:
+        '200':
+          description: Statsviz HTML interface
+          content:
+            text/html:
+              schema:
+                type: string
+              example: "<!DOCTYPE html>..."
+        '401':
+          description: Invalid or missing Basic Authentication credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /debug/statsviz/{path+}:
+    get:
+      summary: Statsviz interface with path
+      description: |
+        Returns the Statsviz visualization interface for application metrics with additional path handling.
+        Requires Basic Authentication.
+      operationId: debugStatsvizPath
+      tags:
+        - Debug
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: path+
+          in: path
+          description: Additional path for statsviz resources
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statsviz resource (HTML, JS, CSS, etc.)
+          content:
+            */*:
+              schema:
+                type: string
+        '401':
+          description: Invalid or missing Basic Authentication credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /debug/statsviz/ws:
+    get:
+      summary: Statsviz WebSocket connection
+      description: |
+        Establishes a WebSocket connection for real-time Statsviz updates.
+        WebSocket connections bypass Basic Authentication per middleware configuration.
+      operationId: debugStatsvizWs
+      tags:
+        - Debug
+      responses:
+        '101':
+          description: WebSocket connection established
+          headers:
+            Upgrade:
+              description: WebSocket upgrade header
+              schema:
+                type: string
+                example: websocket
+            Connection:
+              description: Connection upgrade header
+              schema:
+                type: string
+                example: Upgrade
+            Sec-WebSocket-Accept:
+              description: WebSocket accept header
+              schema:
+                type: string
+        '400':
+          description: Bad Request (missing WebSocket headers)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/auth/signup:
+    post:
+      summary: Register a new user
+      description: Creates a new user account and returns an access token.
+      operationId: signup
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            example:
+              email: "user@example.com"
+              password: "SecurePass123"
+              display_name: "John Doe"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponseEnvelope'
+              example:
+                data:
+                  access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  token_type: "Bearer"
+                  expires_in: 900
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/auth/login:
+    post:
+      summary: Authenticate user
+      description: Verifies credentials and returns an access token.
+      operationId: login
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "user@example.com"
+              password: "SecurePass123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponseEnvelope'
+              example:
+                data:
+                  access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  token_type: "Bearer"
+                  expires_in: 900
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/auth/logout:
+    post:
+      summary: Logout current user
+      description: |
+        Stateless logout - client discards the token.
+        Requires a valid Bearer token in the Authorization header.
+      operationId: logout
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Logged out successfully (no content)
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    BasicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    SignupRequest:
+      type: object
+      required:
+        - email
+        - password
+        - display_name
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 3
+          maxLength: 32
+          example: "SecurePass123"
+        display_name:
+          type: string
+          minLength: 3
+          maxLength: 50
+          example: "John Doe"
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 3
+          maxLength: 32
+          example: "SecurePass123"
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        token_type:
+          type: string
+          enum: ["Bearer"]
+          example: "Bearer"
+        expires_in:
+          type: integer
+          description: Token expiration time in seconds
+          example: 900
+    AuthResponseEnvelope:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AuthResponse'
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "unauthorized"
