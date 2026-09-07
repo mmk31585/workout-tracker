@@ -7,6 +7,9 @@ import (
 
 	"encoding/json"
 )
+type userKey string
+
+const userCtx userKey = "user_id"
 
 type TokenValidator interface {
 	ValidateToken(token string) (string, error)
@@ -48,7 +51,7 @@ func (m *AuthMiddleware) AuthTokenMiddleware(next http.Handler) http.Handler {
 			writeJSONError(w, http.StatusUnauthorized, err.Error())
 			return
 		}
-		ctx := context.WithValue(r.Context(), "user_id", userID)
+		ctx := context.WithValue(r.Context(), userCtx, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
