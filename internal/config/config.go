@@ -13,6 +13,7 @@ var (
 	cfg     *Config
 	loadErr error
 	once    sync.Once
+	Version = "0.0.1"
 )
 
 type Config struct {
@@ -20,7 +21,7 @@ type Config struct {
 	Http HTTPConfig
 	DB   DBConfig
 	Log  LogConfig
-	JWT  JWTConfig
+	Auth AuthConfig
 }
 type AppConfig struct {
 	AppEnv  string
@@ -35,11 +36,19 @@ type DBConfig struct {
 	MaxOpenConns int
 	MaxIdleConns int
 	MaxIdleTime  string
-	QueryTimeout int 
+	QueryTimeout int
 }
 type LogConfig struct {
 	LogLevel  string
 	LogFormat string
+}
+type AuthConfig struct {
+	Basic BasicConfig
+	JWT   JWTConfig
+}
+type BasicConfig struct {
+	UserName string
+	Password string
 }
 type JWTConfig struct {
 	JWTSecret string
@@ -62,13 +71,16 @@ func Load() (*Config, error) {
 		maxOpenConns := GetInt("DB_MAX_OPEN_CONNS", 30)
 		maxIdleConns := GetInt("DB_MAX_IDLE_CONNS", 30)
 		maxIdleTime := GetString("DB_MAX_LIFE_TIME", "5m")
-		queryTimeout := GetInt("DB_QUERY_TIMEOUT", 5) // Default 5 seconds
+		queryTimeout := GetInt("DB_QUERY_TIMEOUT", 5)
 
 		logLevel := GetString("LOG_LEVEL", "info")
 		logFormat := GetString("LOG_FORMAT", "")
 
 		jwtSecret := GetString("JWT_SECRET", "change-me")
 		jwtExp := GetString("JWT_EXPIRATION", "1h")
+
+		basicUser := GetString("BASIC_AUTH_USERNAME", "")
+		basicPass := GetString("BASIC_AUTH_PASSWORD", "")
 
 		if dbAddr == "" {
 			loadErr = fmt.Errorf("config: DB_ADDR is required")
@@ -111,9 +123,19 @@ func Load() (*Config, error) {
 			LogFormat: logFormat,
 		}
 
+		basicConfig := &BasicConfig{
+			UserName: basicUser,
+			Password: basicPass,
+		}
+
 		jwtConfig := &JWTConfig{
 			JWTSecret: jwtSecret,
 			JWTExp:    jwtExp,
+		}
+
+		authConfig := &AuthConfig{
+			Basic: *basicConfig,
+			JWT:   *jwtConfig,
 		}
 
 		cfg = &Config{
@@ -121,7 +143,7 @@ func Load() (*Config, error) {
 			Http: *httpConfig,
 			DB:   *dbConfig,
 			Log:  *logConfig,
-			JWT:  *jwtConfig,
+			Auth: *authConfig,
 		}
 	})
 
