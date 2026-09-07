@@ -7,22 +7,25 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type JWTAuthenticator struct {
+type JWTInterface interface {
+	GenerateToken(userId string) (string, error)
+	ValidateToken(tokenString string) (string, error)
+}
+
+type JWTService struct {
 	secretKey []byte
 	issuer    string
 	expired   time.Duration
 }
-type Claims struct{
-	jwt.RegisteredClaims
-}
-func NewJWTAthenticator(sKey []byte, iss string, exp time.Duration) JWTAuthenticator {
-	return JWTAuthenticator{
+func NewJWTService(sKey []byte, iss string, exp time.Duration) *JWTService {
+	return &JWTService{
 		secretKey: sKey,
 		issuer:    iss,
 		expired:   exp,
 	}
 }
-func (j *JWTAuthenticator) GenerateToken(userId string) (string, error) {
+
+func (j *JWTService) GenerateToken(userId string) (string, error) {
 	claims := jwt.RegisteredClaims{
 		Subject:   userId,
 		Issuer:    j.issuer,
@@ -30,18 +33,17 @@ func (j *JWTAuthenticator) GenerateToken(userId string) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenString, err := token.SignedString([]byte(j.secretKey))
+	tokenString, err := token.SignedString(j.secretKey)
 	if err != nil {
 		return "", err
 	}
 	return tokenString, nil
 }
-func (j *JWTAuthenticator) ValidateToken(tokenString string) (*Claims, error) {
-	claims := &Claims{}
 
+func (j *JWTService) ValidateToken(tokenString string) (string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
-		claims,
+		&jwt.RegisteredClaims{},
 		func(token *jwt.Token) (any, error) {
 
 			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
@@ -57,12 +59,21 @@ func (j *JWTAuthenticator) ValidateToken(tokenString string) (*Claims, error) {
 	)
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if !token.Valid {
-		return nil, errors.New("invalid token")
+		return "", errors.New("invalid token")
 	}
 
-	return claims, nil
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	if !ok {
+		return "", errors.New("invalid token claims")
+	}
+
+	if claims.Subject == "" {
+		return "", errors.New("invalid token subject")
+	}
+
+	return claims.Subject, nil
 }
