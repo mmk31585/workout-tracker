@@ -72,9 +72,9 @@ func main() {
 				Ready:  health.Ready,
 			},
 		},
-		AuthMiddleware: authMiddleware,
+		AuthMiddleware:      authMiddleware,
 		BasicAuthMiddleware: basicAuthMiddleware,
-		Storage:        store,
+		Storage:             store,
 	}
 	handler := server.RegisterRouter(routerCfg)
 
@@ -83,25 +83,38 @@ func main() {
 		Addr:              net.JoinHostPort(cfg.Http.HttpHost, cfg.Http.HttpPort),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+	serverErr := make(chan error, 1)
 
 	go func() {
 		logger.Info("server listening", "address", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error("server failed to start", "error", err)
-			os.Exit(1)
+
+		if err := srv.ListenAndServe(); err != nil &&
+			err != http.ErrServerClosed {
+			serverErr <- err
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	logger.Info("shutting down server")
+	defer signal.Stop(quit)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	select {
+	case err := <-serverErr:
+		logger.Error("server failed", "error", err)
+		os.Exit(1)
+
+	case sig := <-quit:
+		logger.Info("shutdown signal received", "signal", sig)
+	}
+
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		logger.Error("server forced to shutdown", "error", err)
+		logger.Error("server shutdown failed", "error", err)
 		os.Exit(1)
 	}
 
