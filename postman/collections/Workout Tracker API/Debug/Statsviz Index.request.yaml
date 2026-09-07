@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{base_url}}/debug/statsviz/"
+method: GET
+headers:
+  Accept: text/html
+auth:
+  type: basic
+  basic:
+    - key: username
+      value: "{{basic_auth_username}}"
+    - key: password
+      value: "{{basic_auth_password}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      // Statsviz index endpoint test
+      pm.test("Status code is 200 OK", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is HTML", function () {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');
+      });
+
+      pm.test("Response contains statsviz", function () {
+          pm.expect(pm.response.text()).to.include('statsviz');
+      });
+    language: text/javascript
+order: 200

@@ -1,0 +1,33 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/auth/signup"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: text
+  content: |-
+    {
+        "email": "duplicate@example.com",
+        "password": "TestPassword123",
+        "display_name": "Test User"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      // Signup duplicate email test
+      pm.test("Signup with duplicate email returns 409 Conflict", function () {
+          pm.response.to.have.status(409);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.withJson;
+      });
+
+      pm.test("Response contains error envelope", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property('data', null);
+          pm.expect(jsonData).to.have.property('error');
+      });
+    language: text/javascript
+order: 1010

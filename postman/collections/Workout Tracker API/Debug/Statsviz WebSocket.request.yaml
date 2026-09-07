@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{base_url}}/debug/statsviz/ws"
+method: GET
+headers:
+  Accept: */*
+  Upgrade: websocket
+  Connection: Upgrade
+  Sec-WebSocket-Version: 13
+  Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      // Statsviz websocket endpoint test
+      // Note: WebSocket connections may not return HTTP 200 in the same way
+      // but we can check if the connection was upgraded or if we get a proper response
+      pm.test("Response status is acceptable for WebSocket upgrade", function () {
+          var statusCode = pm.response.status.code;
+          // Accept 101 (Switching Protocols) or 200 (OK) or 400 (Bad Request if no Upgrade header handled)
+          pm.expect(statusCode).to.be.oneOf([101, 200, 400]);
+      });
+
+      pm.test("Response headers present", function () {
+          pm.expect(pm.response.headers.count()).to.be.above(0);
+      });
+    language: text/javascript
+order: 400

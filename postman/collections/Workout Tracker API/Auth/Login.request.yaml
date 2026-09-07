@@ -1,0 +1,54 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: text
+  content: |-
+    {
+        "email": "{{test_email}}",
+        "password": "{{test_password}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      // Login request tests
+      pm.test("Status code is 200 OK", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has valid JSON", function () {
+          pm.response.to.be.withJson;
+      });
+
+      pm.test("Response contains data envelope", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property('data');
+      });
+
+      pm.test("Data contains access token", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('access_token');
+          pm.expect(jsonData.data.access_token).to.be.a('string').and.not.empty;
+      });
+
+      pm.test("Token type is Bearer", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('token_type', 'Bearer');
+      });
+
+      pm.test("Expires in is positive integer", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('expires_in');
+          pm.expect(jsonData.data.expires_in).to.be.a('number').that.is.above(0);
+      });
+
+      // Save access token to environment
+      var jsonData = pm.response.json();
+      if (jsonData.data && jsonData.data.access_token) {
+          pm.environment.set("access_token", jsonData.data.access_token);
+      }
+    language: text/javascript
+order: 2000

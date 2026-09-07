@@ -73,8 +73,8 @@ func TestLoad_AllDefaults(t *testing.T) {
 	if cfg.Log.LogFormat != "text" {
 		t.Errorf("Log.LogFormat: expected text in non-production, got %q", cfg.Log.LogFormat)
 	}
-	if cfg.JWT.JWTExp != "1h" {
-		t.Errorf("JWT.JWTExp: expected 1h, got %q", cfg.JWT.JWTExp)
+	if cfg.Auth.JWT.JWTExp != "1h" {
+		t.Errorf("JWT.JWTExp: expected 1h, got %q", cfg.Auth.JWT.JWTExp)
 	}
 }
 
@@ -144,8 +144,8 @@ func TestLoad_CustomValues(t *testing.T) {
 	if cfg.Log.LogFormat != "json" {
 		t.Errorf("Log.LogFormat: expected json, got %q", cfg.Log.LogFormat)
 	}
-	if cfg.JWT.JWTExp != "2h" {
-		t.Errorf("JWT.JWTExp: expected 2h, got %q", cfg.JWT.JWTExp)
+	if cfg.Auth.JWT.JWTExp != "2h" {
+		t.Errorf("JWT.JWTExp: expected 2h, got %q", cfg.Auth.JWT.JWTExp)
 	}
 }
 

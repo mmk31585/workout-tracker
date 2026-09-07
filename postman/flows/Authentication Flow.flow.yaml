@@ -1,0 +1,28 @@
+$kind: flow
+name: Complete API Test Flow
+description: |
+  Complete test flow for the Workout Tracker API.
+  Run this flow to test all available endpoints:
+  
+  1. Debug endpoints (access with basic auth)
+  2. Authentication flow (signup -> login -> logout)
+  3. Verify logout
+  
+steps:
+  - request:
+      $ref: "../collections/Workout Tracker API/Debug/Debug Vars.request.yaml"
+  - request:
+      $ref: "../collections/Workout Tracker API/Debug/Statsviz Index.request.yaml"
+  - request:
+      $ref: "../collections/Workout Tracker API/Debug/Statsviz Wildcard.request.yaml"
+  - request:
+      $ref: "../collections/Workout Tracker API/Debug/Statsviz WebSocket.request.yaml"
+  - request:
+      $ref: "../collections/Workout Tracker API/Auth/Signup.request.yaml"
+  - request:
+      $ref: "../collections/Workout Tracker API/Auth/Login.request.yaml"
+  - request:
+      $ref: "../collections/Workout Tracker API/Auth/Logout.request.yaml"
+  - request:
+      $ref: "../collections/Workout Tracker API/Auth/Logout Missing Auth Header.request.yaml"
+order: 1000

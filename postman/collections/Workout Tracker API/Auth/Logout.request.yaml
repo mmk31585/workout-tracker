@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/auth/logout"
+method: POST
+headers:
+  Accept: application/json
+  Authorization: Bearer {{access_token}}
+scripts:
+  - type: afterResponse
+    code: |-
+      // Logout request tests
+      pm.test("Status code is 204 No Content", function () {
+          pm.response.to.have.status(204);
+      });
+
+      pm.test("Response body is empty", function () {
+          pm.expect(pm.response.text()).to.be.empty;
+      });
+    language: text/javascript
+order: 3000
