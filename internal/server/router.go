@@ -24,8 +24,9 @@ func init() {
 }
 
 type Handlers struct {
-	Auth   AuthHandlers
-	Health HealthHandlers
+	Auth         AuthHandlers
+	Health       HealthHandlers
+	WorkoutPlan  WorkoutPlanHandlers
 }
 
 type AuthHandlers struct {
@@ -38,6 +39,14 @@ type HealthHandlers struct {
 	Health http.HandlerFunc
 	Live   http.HandlerFunc
 	Ready  http.HandlerFunc
+}
+
+type WorkoutPlanHandlers struct {
+	CreatePlan http.HandlerFunc
+	GetPlan    http.HandlerFunc
+	ListPlans  http.HandlerFunc
+	UpdatePlan http.HandlerFunc
+	DeletePlan http.HandlerFunc
 }
 
 type RouterConfig struct {
@@ -73,27 +82,49 @@ func RegisterRouter(cfg RouterConfig) http.Handler {
 		})
 	}
 
-	router.Group(func(r chi.Router) {
+	// Helper for basic auth protected routes
+	basicAuth := func(r chi.Router) {
 		r.Use(cfg.BasicAuthMiddleware.BasicAuthMiddleware)
+	}
 
+	// Helper for JWT auth protected routes
+	authProtected := func(r chi.Router) {
+		r.Use(cfg.AuthMiddleware.AuthTokenMiddleware)
+	}
+
+	router.Group(func(r chi.Router) {
+		basicAuth(r)
 		r.Get("/debug/vars", expvar.Handler().ServeHTTP)
 		r.Get("/debug/statsviz/", statsvizSrv.Index())
 		r.Get("/debug/statsviz/*", statsvizSrv.Index())
 		r.Get("/debug/statsviz/ws", statsvizSrv.Ws())
 	})
+
 	router.Route("/health", func(r chi.Router) {
-		r.Use(cfg.BasicAuthMiddleware.BasicAuthMiddleware)
+		basicAuth(r)
 		r.Get("/", cfg.Handlers.Health.Health)
 		r.Get("/live", cfg.Handlers.Health.Live)
 		r.Get("/ready", cfg.Handlers.Health.Ready)
 	})
+
 	router.Route("/api/v1", func(r chi.Router) {
+		// Public routes (no auth required)
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/signup", cfg.Handlers.Auth.Signup)
 			r.Post("/login", cfg.Handlers.Auth.Login)
-			r.Group(func(r chi.Router) {
-				r.Use(cfg.AuthMiddleware.AuthTokenMiddleware)
-				r.Post("/logout", cfg.Handlers.Auth.Logout)
+			authProtected(r)
+			r.Post("/logout", cfg.Handlers.Auth.Logout)
+		})
+
+		// Protected routes (require JWT auth)
+		r.Group(func(r chi.Router) {
+			authProtected(r)
+			r.Route("/workout-plans", func(r chi.Router) {
+				r.Post("/", cfg.Handlers.WorkoutPlan.CreatePlan)
+				r.Get("/", cfg.Handlers.WorkoutPlan.ListPlans)
+				r.Get("/{id}", cfg.Handlers.WorkoutPlan.GetPlan)
+				r.Put("/{id}", cfg.Handlers.WorkoutPlan.UpdatePlan)
+				r.Delete("/{id}", cfg.Handlers.WorkoutPlan.DeletePlan)
 			})
 		})
 	})
