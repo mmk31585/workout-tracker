@@ -18,6 +18,7 @@ import (
 	servermiddleware "github.com/mmk31585/workout-tracker/internal/server/server_middleware"
 	"github.com/mmk31585/workout-tracker/internal/storage"
 	"github.com/mmk31585/workout-tracker/internal/user"
+	workoutplan "github.com/mmk31585/workout-tracker/internal/workout_plan"
 )
 
 func main() {
@@ -53,6 +54,12 @@ func main() {
 
 	authService := auth.NewAuthService(userRepo, jwtService, jwtExp)
 	authHandler := auth.NewAuthHandler(authService)
+
+	workoutPlanRepo := workoutplan.NewWorkoutPlanRepository(store.DB())
+	workoutItemRepo := workoutplan.NewWorkoutPlanItemRepository(store.DB())
+	workoutPlanService := workoutplan.NewWorkoutPlanService(workoutPlanRepo, workoutItemRepo, store.DB())
+	workoutPlanHandler := workoutplan.NewWorkoutPlanHandler(workoutPlanService)
+
 	basicAuthMiddleware := servermiddleware.NewBasicAuthMiddleware(
 		cfg.Auth.Basic.UserName,
 		cfg.Auth.Basic.Password,
@@ -70,6 +77,13 @@ func main() {
 				Health: health.Health,
 				Live:   health.Live,
 				Ready:  health.Ready,
+			},
+			WorkoutPlan: server.WorkoutPlanHandlers{
+				CreatePlan: workoutPlanHandler.CreatePlan,
+				GetPlan:    workoutPlanHandler.GetPlan,
+				ListPlans:  workoutPlanHandler.ListPlans,
+				UpdatePlan: workoutPlanHandler.UpdatePlan,
+				DeletePlan: workoutPlanHandler.DeletePlan,
 			},
 		},
 		AuthMiddleware:      authMiddleware,
