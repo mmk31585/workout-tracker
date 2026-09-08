@@ -1,0 +1,41 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/workout-plans/{{test_plan_id}}"
+method: GET
+headers:
+  Content-Type: application/json
+  Accept: application/json
+  Authorization: Bearer {{access_token}}
+scripts:
+  - type: afterResponse
+    code: |-
+      // Get Workout Plan request tests
+      pm.test("Status code is 200 OK", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has valid JSON", function () {
+          pm.response.to.be.withJson;
+      });
+
+      pm.test("Response contains data envelope", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property('data');
+      });
+
+      pm.test("Data contains plan ID", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('id', pm.environment.get("test_plan_id"));
+      });
+
+      pm.test("Data contains title", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('title', 'Push Day');
+      });
+
+      pm.test("Data contains items array", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('items');
+          pm.expect(jsonData.data.items).to.be.an('array').that.has.lengthOf(2);
+      });
+language: text/javascript
+order: 1000
