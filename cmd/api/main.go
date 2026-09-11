@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/mmk31585/workout-tracker/internal/config"
 	"github.com/mmk31585/workout-tracker/internal/health"
 	"github.com/mmk31585/workout-tracker/internal/logger"
+	"github.com/mmk31585/workout-tracker/internal/metrics"
 	"github.com/mmk31585/workout-tracker/internal/server"
 	servermiddleware "github.com/mmk31585/workout-tracker/internal/server/server_middleware"
 	"github.com/mmk31585/workout-tracker/internal/storage"
@@ -60,6 +62,13 @@ func main() {
 	workoutPlanService := workoutplan.NewWorkoutPlanService(workoutPlanRepo, workoutItemRepo, store.DB())
 	workoutPlanHandler := workoutplan.NewWorkoutPlanHandler(workoutPlanService)
 
+	metricsInstance := metrics.NewMetrics(
+		metrics.WithRuntimeStats(),
+		metrics.WithStartTime(time.Now()),
+	)
+	authHandler.SetMetrics(metricsInstance)
+	workoutPlanHandler.SetMetrics(metricsInstance)
+
 	basicAuthMiddleware := servermiddleware.NewBasicAuthMiddleware(
 		cfg.Auth.Basic.UserName,
 		cfg.Auth.Basic.Password,
@@ -92,21 +101,27 @@ func main() {
 	}
 	handler := server.RegisterRouter(routerCfg)
 
+	fmt.Println("DEBUG: Router registered successfully")
 	srv := &http.Server{
 		Handler:           handler,
 		Addr:              net.JoinHostPort(cfg.Http.HttpHost, cfg.Http.HttpPort),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+	fmt.Println("DEBUG: HTTP server created, starting goroutine")
 	serverErr := make(chan error, 1)
 
 	go func() {
+		fmt.Println("DEBUG: Inside server goroutine, about to log listening")
 		logger.Info("server listening", "address", srv.Addr)
 
 		if err := srv.ListenAndServe(); err != nil &&
 			err != http.ErrServerClosed {
+			fmt.Println("DEBUG: ListenAndServe error:", err)
 			serverErr <- err
 		}
+		fmt.Println("DEBUG: ListenAndServe returned")
 	}()
+	fmt.Println("DEBUG: Goroutine started, entering select")
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

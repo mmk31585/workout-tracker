@@ -7,16 +7,22 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	apperrors "github.com/mmk31585/workout-tracker/internal/app_errors"
+	"github.com/mmk31585/workout-tracker/internal/metrics"
 	"github.com/mmk31585/workout-tracker/internal/server"
 	servermiddleware "github.com/mmk31585/workout-tracker/internal/server/server_middleware"
 )
 
 type WorkoutPlanHandler struct {
-	Service *WorkoutPlanService
+	Service         *WorkoutPlanService
+	MetricsInstance *metrics.Metrics
 }
 
 func NewWorkoutPlanHandler(s *WorkoutPlanService) *WorkoutPlanHandler {
 	return &WorkoutPlanHandler{Service: s}
+}
+
+func (h *WorkoutPlanHandler) SetMetrics(m *metrics.Metrics) {
+	h.MetricsInstance = m
 }
 
 func (h *WorkoutPlanHandler) CreatePlan(w http.ResponseWriter, r *http.Request) {
@@ -29,6 +35,10 @@ func (h *WorkoutPlanHandler) CreatePlan(w http.ResponseWriter, r *http.Request) 
 	if err := server.Validate.Struct(req); err != nil {
 		server.WriteJSONError(w, http.StatusBadRequest, err.Error())
 		return
+	}
+
+	if h.MetricsInstance != nil {
+		h.MetricsInstance.IncrRequests()
 	}
 
 	resp, err := h.Service.CreatePlan(r.Context(), userID, req)
