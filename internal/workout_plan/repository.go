@@ -14,6 +14,7 @@ import (
 type WorkoutPlanRepository interface {
 	Create(context.Context, WorkoutPlan) (WorkoutPlan, error)
 	GetByID(context.Context, string, string) (WorkoutPlan, error)
+	ListByID(context.Context, string) ([]WorkoutPlan, error)
 	UpdateByID(context.Context, WorkoutPlan, string) (WorkoutPlan, error)
 	DeleteByID(context.Context, string, string) error
 }
@@ -27,8 +28,6 @@ func NewWorkoutPlanRepository(db *sqlx.DB) *PostgresWorkoutPlanRepository {
 		db: db,
 	}
 }
-
-var _ WorkoutPlanRepository = (*PostgresWorkoutPlanRepository)(nil)
 
 func (r *PostgresWorkoutPlanRepository) Create(ctx context.Context, wp WorkoutPlan) (WorkoutPlan, error) {
 	var workoutPlanTemp WorkoutPlan
@@ -181,4 +180,28 @@ func (r *PostgresWorkoutPlanRepository) DeleteByID(ctx context.Context, id strin
 		return apperrors.ErrNotFound
 	}
 	return nil
+}
+
+func (r *PostgresWorkoutPlanRepository) ListByID(ctx context.Context, userID string) ([]WorkoutPlan, error) {
+	var plans []WorkoutPlan
+	query := `
+		SELECT
+			id,
+			user_id,
+			title,
+			description,
+			status,
+			created_at,
+			updated_at
+		FROM workout_plans
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+	`
+	ctx, cancel := db.QueryTimeoutContext(ctx)
+	defer cancel()
+	err := r.db.SelectContext(ctx, &plans, query, userID)
+	if err != nil {
+		return []WorkoutPlan{}, fmt.Errorf("repository: failed to list plans: %w", err)
+	}
+	return plans, nil
 }

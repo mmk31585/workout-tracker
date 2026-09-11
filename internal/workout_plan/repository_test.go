@@ -216,7 +216,7 @@ func TestPostgresWorkoutPlanItemRepository_Create(t *testing.T) {
 			repo, mock := newMockItemRepo(t)
 			tt.mock(mock)
 
-			got, err := repo.Create(context.Background(), tt.input)
+			got, err := repo.CreateBatch(context.Background(), tt.input)
 
 			if tt.wantErr {
 				if !stderrors.Is(err, errDB) {
@@ -501,39 +501,45 @@ func TestPostgresWorkoutPlanRepository_DeleteByID(t *testing.T) {
 	}
 }
 
-func TestPostgresWorkoutPlanItemRepository_DeleteByID(t *testing.T) {
+func TestPostgresWorkoutPlanItemRepository_DeleteBatch(t *testing.T) {
 	tests := []struct {
 		name    string
-		id      string
+		ids     []string
 		mock    func(mock sqlmock.Sqlmock)
 		wantErr error
 	}{
 		{
 			name: "success",
-			id:   "item-1",
+			ids:  []string{"item-1"},
 			mock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(`DELETE\s+FROM\s+workout_plan_items\s+WHERE\s+id\s*=\s*\$1`).
+				mock.ExpectBegin()
+				mock.ExpectExec(`DELETE\s+FROM\s+workout_plan_items\s+WHERE\s+id\s+IN`).
 					WithArgs("item-1", "user-1").
 					WillReturnResult(sqlmock.NewResult(0, 1))
+				mock.ExpectCommit()
 			},
 		},
 		{
 			name: "not found",
-			id:   "missing",
+			ids:  []string{"missing"},
 			mock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(`DELETE\s+FROM\s+workout_plan_items\s+WHERE\s+id\s*=\s*\$1`).
+				mock.ExpectBegin()
+				mock.ExpectExec(`DELETE\s+FROM\s+workout_plan_items\s+WHERE\s+id\s+IN`).
 					WithArgs("missing", "user-1").
 					WillReturnResult(sqlmock.NewResult(0, 0))
+				mock.ExpectCommit()
 			},
 			wantErr: apperrors.ErrNotFound,
 		},
 		{
 			name: "database error",
-			id:   "item-1",
+			ids:  []string{"item-1"},
 			mock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(`DELETE\s+FROM\s+workout_plan_items\s+WHERE\s+id\s*=\s*\$1`).
+				mock.ExpectBegin()
+				mock.ExpectExec(`DELETE\s+FROM\s+workout_plan_items\s+WHERE\s+id\s+IN`).
 					WithArgs("item-1", "user-1").
 					WillReturnError(errDB)
+				mock.ExpectRollback()
 			},
 			wantErr: errDB,
 		},
@@ -546,7 +552,7 @@ func TestPostgresWorkoutPlanItemRepository_DeleteByID(t *testing.T) {
 			repo, mock := newMockItemRepo(t)
 			tt.mock(mock)
 
-			err := repo.DeleteByID(context.Background(), tt.id, "user-1")
+			err := repo.DeleteBatch(context.Background(), tt.ids, "user-1")
 
 			if tt.wantErr != nil {
 				if !stderrors.Is(err, tt.wantErr) {
@@ -625,7 +631,7 @@ func TestPostgresWorkoutPlanItemRepository_GetByID(t *testing.T) {
 			repo, mock := newMockItemRepo(t)
 			tt.mock(mock)
 
-			got, err := repo.GetByID(context.Background(), tt.id, "user-1")
+			got, err := repo.GetByPlanID(context.Background(), tt.id, "user-1")
 
 			if tt.wantErr != nil {
 				if !stderrors.Is(err, tt.wantErr) {

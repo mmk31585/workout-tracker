@@ -1,0 +1,90 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/workout-plans/{{test_plan_id}}"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+  Authorization: Bearer {{access_token}}
+body:
+  type: text
+  content: |-
+    {
+        "title": "Updated Push Day",
+        "description": "Updated chest and triceps workout",
+        "items": [
+            {
+                "exercise_id": "123e4567-e89b-12d3-a456-426614174000",
+                "order_index": 0,
+                "sets": 4,
+                "reps": 12,
+                "weight": 55.0,
+                "unit": "kg"
+            },
+            {
+                "exercise_id": "123e4567-e89b-12d3-a456-426614174002",
+                "order_index": 1,
+                "sets": 3,
+                "reps": 15,
+                "weight": 40.0,
+                "unit": "kg"
+            }
+        ]
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      // Generate test UUIDs if needed
+      if (!pm.environment.has("test_exercise_id_1")) {
+          pm.environment.set("test_exercise_id_1", "123e4567-e89b-12d3-a456-426614174000");
+          pm.environment.set("test_exercise_id_2", "123e4567-e89b-12d3-a456-426614174001");
+          pm.environment.set("test_exercise_id_3", "123e4567-e89b-12d3-a456-426614174002");
+      }
+  - type: afterResponse
+    code: |-
+      // Update Workout Plan request tests
+      pm.test("Status code is 200 OK", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has valid JSON", function () {
+          pm.response.to.be.withJson;
+      });
+
+      pm.test("Response contains data envelope", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property('data');
+      });
+
+      pm.test("Data contains plan ID", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('id', pm.environment.get("test_plan_id"));
+      });
+
+      pm.test("Data contains updated title", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('title', 'Updated Push Day');
+      });
+
+      pm.test("Data contains updated description", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('description', 'Updated chest and triceps workout');
+      });
+
+      pm.test("Data contains updated items array", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data).to.have.property('items');
+          pm.expect(jsonData.data.items).to.be.an('array').that.has.lengthOf(2);
+      });
+
+      pm.test("First item has updated sets and reps", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data.items[0]).to.have.property('sets', 4);
+          pm.expect(jsonData.data.items[0]).to.have.property('reps', 12);
+      });
+
+      pm.test("Second item has different exercise", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.data.items[1]).to.have.property('exercise_id', '123e4567-e89b-12d3-a456-426614174002');
+      });
+language: text/javascript
+order: 1000

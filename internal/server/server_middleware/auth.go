@@ -9,7 +9,7 @@ import (
 )
 type userKey string
 
-const userCtx userKey = "user_id"
+const UserCtx userKey = "user_id"
 
 type TokenValidator interface {
 	ValidateToken(token string) (string, error)
@@ -51,7 +51,7 @@ func (m *AuthMiddleware) AuthTokenMiddleware(next http.Handler) http.Handler {
 			writeJSONError(w, http.StatusUnauthorized, err.Error())
 			return
 		}
-		ctx := context.WithValue(r.Context(), userCtx, userID)
+		ctx := context.WithValue(r.Context(), UserCtx, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

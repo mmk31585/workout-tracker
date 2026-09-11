@@ -5,16 +5,22 @@ import (
 	"net/http"
 
 	apperrors "github.com/mmk31585/workout-tracker/internal/app_errors"
+	"github.com/mmk31585/workout-tracker/internal/metrics"
 	"github.com/mmk31585/workout-tracker/internal/server"
 )
 
 
 type AuthHandler struct {
-	AuthService *AuthService
+	AuthService       *AuthService
+	MetricsInstance   *metrics.Metrics
 }
 
 func NewAuthHandler(as *AuthService) *AuthHandler {
 	return &AuthHandler{AuthService: as}
+}
+
+func (h *AuthHandler) SetMetrics(m *metrics.Metrics) {
+	h.MetricsInstance = m
 }
 
 func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
@@ -26,6 +32,10 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	if err := server.Validate.Struct(payload); err != nil {
 		server.WriteJSONError(w, http.StatusBadRequest, err.Error())
 		return
+	}
+
+	if h.MetricsInstance != nil {
+		h.MetricsInstance.IncrSignup()
 	}
 
 	token, err := h.AuthService.Signup(r.Context(), payload.Email, payload.Password, payload.DisplayName)
@@ -58,8 +68,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := h.AuthService.Login(r.Context(), payload.Email, payload.Password)
 	if err != nil {
+		if h.MetricsInstance != nil {
+			h.MetricsInstance.IncrLoginFailed()
+		}
 		server.WriteJSONError(w, http.StatusUnauthorized, err.Error())
 		return
+	}
+	if h.MetricsInstance != nil {
+		h.MetricsInstance.IncrLoginSuccess()
 	}
 	result := &AuthResponse{
 		AccessToken: token,

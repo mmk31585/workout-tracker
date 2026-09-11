@@ -1,2 +1,2 @@
 $kind: collection
-description: Postman collection for Workout Tracker API containing health, debug, and authentication endpoints. Includes basic auth protected debug endpoints (expvar, statsviz) and JWT protected authentication endpoints (signup, login, logout).
+description: Postman collection for Workout Tracker API containing health, debug, authentication, and workout plan endpoints. Includes basic auth protected debug endpoints (expvar, statsviz), JWT protected authentication endpoints (signup, login, logout), and workout plan CRUD endpoints (create, get, list, update, delete with bundled items).
