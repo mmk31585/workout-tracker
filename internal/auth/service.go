@@ -51,7 +51,7 @@ func (a *AuthService) Signup(ctx context.Context, email, password, displayName s
 	if err != nil {
 		return "", err
 	}
-	
+
 	return a.jwt.GenerateToken(createdUser.ID)
 }
 

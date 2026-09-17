@@ -7,13 +7,14 @@ import (
 )
 
 var (
-	ErrNotFound           = errors.New("resource not found")
-	ErrConflict           = errors.New("resource conflict")
-	ErrInvalidInput       = errors.New("invalid input")
-	ErrForeignKey         = errors.New("foreign key violation")
-	ErrInternal           = errors.New("internal error")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUnauthorized       = errors.New("unauthorized")
+	ErrNotFound                  = errors.New("resource not found")
+	ErrConflict                  = errors.New("resource conflict")
+	ErrInvalidInput              = errors.New("invalid input")
+	ErrForeignKey                = errors.New("foreign key violation")
+	ErrInternal                  = errors.New("internal error")
+	ErrInvalidCredentials        = errors.New("invalid credentials")
+	ErrUnauthorized              = errors.New("unauthorized")
+	ErrIllegalScheduleTransition = errors.New("illegal schedule transition")
 )
 
 func IsUniqueRow(err error) bool {

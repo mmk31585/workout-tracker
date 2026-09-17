@@ -51,7 +51,6 @@ func setupTestConfig(t *testing.T) {
 	t.Cleanup(config.ResetForTest)
 }
 
-
 func TestPostgresWorkoutSessionRepository_Create(t *testing.T) {
 	fixedTime := time.Date(2025, 1, 2, 3, 4, 5, 0, time.UTC)
 	performedAt := time.Date(2025, 1, 5, 10, 0, 0, 0, time.UTC)
