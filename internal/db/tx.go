@@ -16,11 +16,11 @@ func RunInTx(ctx context.Context, db DB, fn func(*sqlx.Tx) error) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if err := fn(tx); err != nil {
 		tx.Rollback()
 		return err
 	}
-	
+
 	return tx.Commit()
 }

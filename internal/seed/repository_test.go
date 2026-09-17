@@ -32,10 +32,9 @@ func TestPostgresSeedRepository_SeedExercises(t *testing.T) {
 		WithArgs("Push-ups", "Standard push-up", "Strength", "Chest, Triceps, Shoulders").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	
 	ex := exercise.Exercise{
 		Name:        "Push-ups",
-		Description: ptr("Standard push-up"), 
+		Description: ptr("Standard push-up"),
 		Category:    ptr("Strength"),
 		MuscleGroup: ptr("Chest, Triceps, Shoulders"),
 	}
@@ -66,7 +65,6 @@ func TestPostgresSeedRepository_SeedExercises_Error(t *testing.T) {
 
 	repo := NewPostgresSeedRepository(sqlx.NewDb(db, "postgres"))
 
-	
 	mock.ExpectExec(`^\s*INSERT INTO exercises`).
 		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnError(errors.New("database error"))
@@ -83,7 +81,6 @@ func TestPostgresSeedRepository_SeedExercises_Error(t *testing.T) {
 		t.Fatalf("SeedExercises expected error but got nil")
 	}
 
-	
 	if !strings.Contains(err.Error(), "database error") {
 		t.Errorf("SeedExercises returned unexpected error: %v", err)
 	}
@@ -109,8 +106,6 @@ func TestPostgresSeedRepository_SeedUsers(t *testing.T) {
 
 	repo := NewPostgresSeedRepository(sqlx.NewDb(db, "postgres"))
 
-	
-	
 	mock.ExpectExec(`^\s*INSERT INTO users`).
 		WithArgs("admin@example.com", "Admin User", sqlmock.AnyArg()).
 		WillReturnResult(sqlmock.NewResult(1, 1))
@@ -141,7 +136,6 @@ func TestPostgresSeedRepository_SeedUsers_Error(t *testing.T) {
 
 	repo := NewPostgresSeedRepository(sqlx.NewDb(db, "postgres"))
 
-	
 	mock.ExpectExec(`^\s*INSERT INTO users`).
 		WithArgs("admin@example.com", "Admin User", sqlmock.AnyArg()).
 		WillReturnError(errors.New("database error"))
@@ -151,7 +145,6 @@ func TestPostgresSeedRepository_SeedUsers_Error(t *testing.T) {
 		t.Fatalf("SeedUsers expected error but got nil")
 	}
 
-	
 	if !strings.Contains(err.Error(), "database error") {
 		t.Errorf("SeedUsers returned unexpected error: %v", err)
 	}

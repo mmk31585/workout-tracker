@@ -9,7 +9,7 @@ import (
 
 func QueryTimeoutContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	cfg := config.GetConfig()
-	timeout := 5 * time.Second 
+	timeout := 5 * time.Second
 	if cfg != nil {
 		timeout = time.Duration(cfg.DB.QueryTimeout) * time.Second
 	}

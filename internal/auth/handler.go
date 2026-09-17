@@ -9,10 +9,9 @@ import (
 	"github.com/mmk31585/workout-tracker/internal/server"
 )
 
-
 type AuthHandler struct {
-	AuthService       *AuthService
-	MetricsInstance   *metrics.Metrics
+	AuthService     *AuthService
+	MetricsInstance *metrics.Metrics
 }
 
 func NewAuthHandler(as *AuthService) *AuthHandler {

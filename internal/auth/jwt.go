@@ -17,6 +17,7 @@ type JWTService struct {
 	issuer    string
 	expired   time.Duration
 }
+
 func NewJWTService(sKey []byte, iss string, exp time.Duration) *JWTService {
 	return &JWTService{
 		secretKey: sKey,

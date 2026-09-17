@@ -127,7 +127,7 @@ func TestAuthService_Login_Success(t *testing.T) {
 
 	// Hash the password we'll use for testing
 	testPassword := "testpassword123"
-	hash, err :=HashPassword(testPassword)
+	hash, err := HashPassword(testPassword)
 	if err != nil {
 		t.Fatalf("failed to hash password: %v", err)
 	}

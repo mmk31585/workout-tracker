@@ -14,8 +14,6 @@ type response struct {
 	Error string `json:"error,omitempty"`
 }
 
-
-
 // healthCtxKey is the context key for storing storage.Storage.
 type healthCtxKey struct{}
 

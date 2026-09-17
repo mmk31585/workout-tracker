@@ -126,7 +126,7 @@ func TestUpdateWorkoutPlanRequest_Validate(t *testing.T) {
 		{
 			name: "valid partial update",
 			req: UpdateWorkoutPlanRequest{
-				Title:       strPtr("New Title"),
+				Title: strPtr("New Title"),
 				Items: []UpdateWorkoutPlanItemRequest{
 					{
 						ID:         "123e4567-e89b-12d3-a456-426614174000",
