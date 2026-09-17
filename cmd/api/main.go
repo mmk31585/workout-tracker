@@ -16,11 +16,13 @@ import (
 	"github.com/mmk31585/workout-tracker/internal/health"
 	"github.com/mmk31585/workout-tracker/internal/logger"
 	"github.com/mmk31585/workout-tracker/internal/metrics"
+	"github.com/mmk31585/workout-tracker/internal/scheduled_workout"
 	"github.com/mmk31585/workout-tracker/internal/server"
 	servermiddleware "github.com/mmk31585/workout-tracker/internal/server/server_middleware"
 	"github.com/mmk31585/workout-tracker/internal/storage"
 	"github.com/mmk31585/workout-tracker/internal/user"
 	workoutplan "github.com/mmk31585/workout-tracker/internal/workout_plan"
+	"github.com/mmk31585/workout-tracker/internal/workout_session"
 )
 
 func main() {
@@ -62,6 +64,19 @@ func main() {
 	workoutPlanService := workoutplan.NewWorkoutPlanService(workoutPlanRepo, workoutItemRepo, store.DB())
 	workoutPlanHandler := workoutplan.NewWorkoutPlanHandler(workoutPlanService)
 
+	scheduledWorkoutRepo := scheduledworkout.NewScheduledWorkoutRepository(store.DB())
+	workoutSessionRepo := workoutsession.NewWorkoutSessionRepository(store.DB())
+	workoutSessionItemRepo := workoutsession.NewWorkoutSessionItemRepository(store.DB())
+	scheduledWorkoutService := scheduledworkout.NewScheduledWorkoutService(
+		scheduledWorkoutRepo,
+		workoutPlanRepo,
+		workoutItemRepo,
+		workoutSessionRepo,
+		workoutSessionItemRepo,
+		store.DB(),
+	)
+	scheduledWorkoutHandler := scheduledworkout.NewScheduledWorkoutHandler(scheduledWorkoutService)
+
 	metricsInstance := metrics.NewMetrics(
 		metrics.WithRuntimeStats(),
 		metrics.WithStartTime(time.Now()),
@@ -93,6 +108,13 @@ func main() {
 				ListPlans:  workoutPlanHandler.ListPlans,
 				UpdatePlan: workoutPlanHandler.UpdatePlan,
 				DeletePlan: workoutPlanHandler.DeletePlan,
+			},
+			ScheduledWorkout: server.ScheduledWorkoutHandlers{
+				Schedule: scheduledWorkoutHandler.ScheduleWorkout,
+				List:     scheduledWorkoutHandler.ListScheduledWorkouts,
+				Get:      scheduledWorkoutHandler.GetScheduledWorkout,
+				Complete: scheduledWorkoutHandler.CompleteWorkout,
+				Cancel:   scheduledWorkoutHandler.CancelWorkout,
 			},
 		},
 		AuthMiddleware:      authMiddleware,

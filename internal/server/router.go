@@ -25,9 +25,10 @@ func init() {
 }
 
 type Handlers struct {
-	Auth        AuthHandlers
-	Health      HealthHandlers
-	WorkoutPlan WorkoutPlanHandlers
+	Auth             AuthHandlers
+	Health           HealthHandlers
+	WorkoutPlan      WorkoutPlanHandlers
+	ScheduledWorkout ScheduledWorkoutHandlers
 }
 
 type AuthHandlers struct {
@@ -48,6 +49,14 @@ type WorkoutPlanHandlers struct {
 	ListPlans  http.HandlerFunc
 	UpdatePlan http.HandlerFunc
 	DeletePlan http.HandlerFunc
+}
+
+type ScheduledWorkoutHandlers struct {
+	Schedule http.HandlerFunc
+	List     http.HandlerFunc
+	Get      http.HandlerFunc
+	Complete http.HandlerFunc
+	Cancel   http.HandlerFunc
 }
 
 type RouterConfig struct {
@@ -152,6 +161,15 @@ func RegisterRouter(cfg RouterConfig) http.Handler {
 				r.Get("/{id}", cfg.Handlers.WorkoutPlan.GetPlan)
 				r.Put("/{id}", cfg.Handlers.WorkoutPlan.UpdatePlan)
 				r.Delete("/{id}", cfg.Handlers.WorkoutPlan.DeletePlan)
+			})
+			r.Route("/scheduled-workouts", func(r chi.Router) {
+				r.Get("/", cfg.Handlers.ScheduledWorkout.List)
+				r.Get("/{id}", cfg.Handlers.ScheduledWorkout.Get)
+				r.Post("/{id}/complete", cfg.Handlers.ScheduledWorkout.Complete)
+				r.Post("/{id}/cancel", cfg.Handlers.ScheduledWorkout.Cancel)
+			})
+			r.Route("/workout-plans/{planId}/schedule", func(r chi.Router) {
+				r.Post("/", cfg.Handlers.ScheduledWorkout.Schedule)
 			})
 		})
 	})
