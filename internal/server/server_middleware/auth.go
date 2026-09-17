@@ -7,6 +7,7 @@ import (
 
 	"encoding/json"
 )
+
 type userKey string
 
 const UserCtx userKey = "user_id"
@@ -21,7 +22,7 @@ type envelope struct {
 	Error string `json:"error,omitempty"`
 }
 
-func NewAuthMiddlware(validator TokenValidator) *AuthMiddleware{
+func NewAuthMiddlware(validator TokenValidator) *AuthMiddleware {
 	return &AuthMiddleware{
 		Validator: validator,
 	}
